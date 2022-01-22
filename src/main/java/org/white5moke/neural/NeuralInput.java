@@ -13,26 +13,39 @@ public class NeuralInput {
     public String id;
     public double weight;
 
+    public int timeDelta;
+
     public List<Listener5> listener;
     public Sender5 sender;
 
+    private Activation activation;
+
     public NeuralInput() throws InterruptedException {
-        while(true) {
-            // use a random string token for identifier
-            setId(generateToken());
+        // use a random string token for identifier
+        setId(generateToken());
 
-            Activation activation = new Activation();
+        setActivation(new Activation());
 
-            setWeight(activation.getWeight());
-            int t = (int) Math.floor(getWeight() * 10_000);
-            System.out.println(String.format("%16s|%28s|%8s|%32s",
-                    getId(),
-                    getWeight(),
-                    activation.getType(),
-                    Instant.now().atZone(ZoneId.of("UTC"))
-            ));
-            Thread.sleep(Math.abs(t));
-        }
+        setWeight(getActivation().getWeight());
+
+        int t = (int) Math.floor(getWeight() * 10_000);
+        setTimeDelta(Math.abs(t));
+    }
+
+    public Activation getActivation() {
+        return activation;
+    }
+
+    public void setActivation(Activation activation) {
+        this.activation = activation;
+    }
+
+    private void setTimeDelta(int a) {
+        this.timeDelta = a;
+    }
+
+    public int getTimeDelta() {
+        return this.timeDelta;
     }
 
     public String getId() {
@@ -60,5 +73,14 @@ public class NeuralInput {
         Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
 
         return encoder.encodeToString(b);
+    }
+
+    public String toString() {
+        return String.format("%16s|%28s|%8s|%32s\r",
+                getId(),
+                getWeight(),
+                getActivation().getType(),
+                Instant.now().atZone(ZoneId.of("UTC"))
+        );
     }
 }
