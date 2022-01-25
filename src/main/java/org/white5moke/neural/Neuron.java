@@ -1,40 +1,54 @@
 package org.white5moke.neural;
 
-import org.apache.commons.lang3.ObjectUtils;
-
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.OptionalDouble;
-import java.util.stream.Stream;
+import java.util.NoSuchElementException;
 
 public class Neuron {
-    public List<NeuralInput> inputs = new ArrayList<>();
-    public static final int INPUT_LIMIT = 5;
+    public ArrayList<NeuralInput> inputs = new ArrayList<>();
     private double outputWeight = 0;
 
+    private Instant starter;
+    private Instant moment;
+
     public Neuron() throws InterruptedException {
+        starter = Instant.now();
+
         while (true) {
             NeuralInput neuralInput = new NeuralInput();
             inputs.add(neuralInput);
-            System.out.println(neuralInput);
+            combinator();
             Thread.sleep(neuralInput.getTimeDelta());
 
-            combinator();
+
         }
     }
 
     private void combinator() {
         /*
-        TODO : this avgs now, but i need to figure out how this is calculated from all input weights
+        TODO : this averages now. figure out how this is calculated from all input weights
          */
-        OptionalDouble avgWeight = inputs.stream()
-                .mapToDouble(NeuralInput::getWeight)
-                .reduce((a, b) -> a + b / inputs.size());
-        setOutputWeight(avgWeight.getAsDouble());
+        setOutputWeight(inputs.stream().mapToDouble(x -> x.getWeight()).average().getAsDouble());
 
-        inputs.stream().filter(i -> (i.getWeight() < 0)).forEach(i -> {
-            if(inputs.size() > 1) inputs.remove(i);
-        });
+        try {
+            // moving percentile to establish rememberance inputs
+            double min = inputs.stream().mapToDouble(x -> x.getWeight()).min().orElse(-1.0);
+            double max = inputs.stream().mapToDouble(x -> x.getWeight()).max().orElse(1.0);
+
+            // keep forgetting
+            inputs.removeIf(x -> (x.getWeight() < min || x.getWeight() > max));
+
+            // let's only do a minimal poll
+            // TODO : temp. remove later
+            if(inputs.size() > 31) inputs.remove(0);
+
+            System.out.print(String.format("avg. weight: %s; total inputs: %s\r",
+                    inputs.stream().mapToDouble(x -> x.getWeight()).average().getAsDouble(),
+                    inputs.size()
+            ));
+        } catch(NoSuchElementException e) {
+            return;
+        }
     }
 
     public double getOutputWeight() {
