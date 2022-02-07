@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class Activation {
     public enum activationType {
-        TANH, SIGMOID
+        TANH, SIGMOID, RELU, SOFTMAX, LEAKY
     };
     private String type;
     private double weight = 0.0;

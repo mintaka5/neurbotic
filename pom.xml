@@ -47,7 +47,11 @@
             <artifactId>vectorz</artifactId>
             <version>0.67.0</version>
         </dependency>
-
+        <!-- <dependency>
+            <groupId>com.github.haifengl</groupId>
+            <artifactId>smile-core</artifactId>
+            <version>2.6.0</version>
+        </dependency> -->
 
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
