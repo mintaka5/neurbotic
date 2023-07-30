@@ -3,17 +3,19 @@ package org.white5moke.neural.lab;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class AwarenessEngine {
-    public AwarenessEngine() throws InterruptedException {
-        Impulse.getInstance()
-                .withIdentity(RandomStringUtils.randomAlphanumeric(4).getBytes(StandardCharsets.UTF_8))
-                .start();
-        Impulse.getInstance()
-                .withIdentity(RandomStringUtils.randomAlphanumeric(8).getBytes(StandardCharsets.UTF_8))
-                .start();
-        Impulse.getInstance()
-                .withIdentity(RandomStringUtils.randomAlphanumeric(2).getBytes(StandardCharsets.UTF_8))
-                .start();
+    AtomicLong globalResult = new AtomicLong(0L);
+
+    public AwarenessEngine() {
+        Arrays.stream(new int[] {4, 8, 2}).forEach((i) -> {
+            Impulse.getInstance()
+                    .present(globalResult)
+                    .withIdentity(RandomStringUtils.randomAlphanumeric(i).getBytes(StandardCharsets.UTF_8))
+
+                    .start();
+        });
     }
 }
