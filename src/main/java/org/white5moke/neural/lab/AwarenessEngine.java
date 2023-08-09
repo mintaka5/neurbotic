@@ -4,18 +4,26 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicLong;
+
+import static java.lang.System.out;
 
 public class AwarenessEngine {
-    AtomicLong globalResult = new AtomicLong(0L);
+    private long result = 0;
 
     public AwarenessEngine() {
         Arrays.stream(new int[] {4, 8, 2}).forEach((i) -> {
             Impulse.getInstance()
-                    .present(globalResult)
+                    .withEngine(this)
                     .withIdentity(RandomStringUtils.randomAlphanumeric(i).getBytes(StandardCharsets.UTF_8))
-
                     .start();
         });
+    }
+
+    public long getResult() {
+        return result;
+    }
+
+    public void setResult(long l) {
+        result = l;
     }
 }
