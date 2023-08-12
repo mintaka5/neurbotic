@@ -1,56 +1,72 @@
 package org.white5moke.machine;
 
-import org.apache.commons.lang3.ArrayUtils;
+import com.ezylang.evalex.EvaluationException;
+import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.data.EvaluationValue;
+import com.ezylang.evalex.parser.ParseException;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.IntStream;
 
 import static java.lang.System.out;
 
 public class Turing extends Thread {
-    private final int range;
+    private HashMap<Integer, String> states = new HashMap<>();
+    private int tapeLength;
 
-    private String symbols = "AX#";
-    private int currentState = 0;
+    /**
+     * this can be any type of characters.
+     * default is 0 (off), 1 (on), - (blank)
+     * these get randomly and individually
+     * placed in each tape cell
+     */
+    private String stateValues = "01-";
 
+    /**
+     * the fixed function table, add as many as you like
+     * that will act upon cell's state value.
+     */
+    private String[] functionTable = new String[] {
+        "(x ^ 0)", "(x < 1)", "(x + 2) / (x + 1)", "(x * x) ^ 8"
+    };
 
-    public Turing(int range) {
-        this.range = range;
+    public Turing(int cnt, String vals) {
+        tapeLength = cnt;
+        stateValues = vals.strip();
 
-        // populate default instructions
-        /**
-         * cheatsheet:
-         * a< is shift left
-         * b> is shift right
-         * 0| is hold
-         * 1^ is continue
-         * # is halt. all systems no-go
-         * if continue happens we need to store last instruction's shift direction
-         * basically this is the Turing machine's fixed table of instructions
-         * @TODO make this customizable
-         */
-        String[] instructions = {
-                "a<", "b>", "0|", "1^", "#"
-        };
-    }
-
-    public void setSymbols(String symbols) {
-        this.symbols = symbols;
+        // create the tape loop
+        IntStream.rangeClosed(0, tapeLength)
+                .forEach((i) -> states.put(i, getRandomState()));
     }
 
     public void run() {
-        HashMap<Integer, String> loop = generateTape();
+        states.forEach((i, s) -> out.print(s));
+        out.print("\n\n");
+
+        int position = 0;
+        int funcPos = 0;
+
         while(true) {
-            String cell = loop.get(currentState);
+            String state = getStates().get(position);
 
-            out.println(currentState + ": " + cell);
+            // control unit passing over every state to process it.
+            String formula = functionTable[funcPos];
+            Expression expr = new Expression(formula);
+            try {
+                // @TODO need to try again on error, or if division by 0 happens
+                EvaluationValue result = expr.with("x", Character.getNumericValue(state.charAt(0))).evaluate();
+                out.print(result.getNumberValue());
+            } catch (EvaluationException | ParseException e) {
+                throw new RuntimeException(e);
+            }
 
+            position++;
+            funcPos++;
 
-            currentState++;
+            if(position > tapeLength) position = 0; // reset to beginning to restart loop.
 
-            if(currentState == range) currentState = 0;
+            if(funcPos > functionTable.length-1) funcPos = 0; // do the same for functions.
 
             try {
                 Thread.sleep(500);
@@ -60,26 +76,30 @@ public class Turing extends Thread {
         }
     }
 
-    private HashMap<Integer, String> generateTape() {
-        HashMap<Integer, String> map = new HashMap<>();
+    private String getRandomState() {
+        //String [] inSpl = instructions.split("(?!^)");
+        String[] spl = stateValues.split("(?!^)");
+        int r1 = new SecureRandom().nextInt(spl.length);
+        //int r2 = new SecureRandom().nextInt(inSpl.length);
 
-        IntStream.rangeClosed(0, range).forEach((i) -> {
-            map.put(i, getRandomSymbol());
-        });
-
-        return map;
+        return spl[r1]/*inSpl[r2]*/;
     }
 
-    private String getRandomSymbol() {
-        String[] split = symbols.split("(?!^)");
-        int rand = new SecureRandom().nextInt(split.length);
+    public static void main(String[] args) {
+        if(args.length < 1) {
+            out.println("1 (numeric) argument is required");
+            System.exit(-1);
+        }
 
-        return split[rand];
+        Turing t = new Turing(Integer.parseInt(args[0].trim()), args[1].trim());
+        t.start();
     }
 
-    public static void main(String[] a) {
-        Turing turing = new Turing(Integer.valueOf(a[0].strip()));
-        turing.setSymbols("01AX#");
-        turing.start();
+    public HashMap<Integer, String> getStates() {
+        return states;
+    }
+
+    public void setStates(HashMap<Integer, String> states) {
+        this.states = states;
     }
 }

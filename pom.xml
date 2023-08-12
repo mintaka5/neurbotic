@@ -52,6 +52,16 @@
             <artifactId>vectorz</artifactId>
             <version>0.67.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.ezylang</groupId>
+            <artifactId>EvalEx</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+        <!-- <dependency>
+            <groupId>io.github.rodrigocananea</groupId>
+            <artifactId>towel-project</artifactId>
+            <version>1.0.0</version>
+        </dependency> -->
         <!-- <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-core</artifactId>
